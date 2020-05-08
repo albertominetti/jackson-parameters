@@ -45,10 +45,10 @@ public class SingleParamConstructorTest {
     }
 
     @Test
-    void deserialize_with_single_param_constructor_success() throws JsonProcessingException {
+    void deserialize_with_single_param_constructor_and_property_success() throws JsonProcessingException {
         // given
         ObjectMapper mapper = JsonMapper.builder()
-                .addModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES))
+                .addModule(new ParameterNamesModule())
                 // also the compiler --parameters option is required
                 .build();
 
@@ -74,6 +74,41 @@ public class SingleParamConstructorTest {
         private String field3;
 
         public MyClassWithSingleParamConstructorOk(@JsonProperty("field1") String field1) {
+            this.field1 = field1;
+        }
+    }
+
+    @Test
+    void deserialize_with_single_param_constructor_annotated_success() throws JsonProcessingException {
+        // given
+        ObjectMapper mapper = JsonMapper.builder()
+                .addModule(new ParameterNamesModule())
+                // also the compiler --parameters option is required
+                .build();
+
+        MyClassWithSingleParamConstructorAnnotatedOk original = new MyClassWithSingleParamConstructorAnnotatedOk("one");
+        original.setField2("two");
+        original.setField3("three");
+        String serialized = mapper.writeValueAsString(original);
+
+        // when
+        MyClassWithSingleParamConstructorAnnotatedOk deserialized = mapper.readValue(serialized, MyClassWithSingleParamConstructorAnnotatedOk.class);
+
+        // then
+        assertThat(deserialized, is(notNullValue()));
+        assertThat(deserialized.getField1(), is("one"));
+        assertThat(deserialized.getField2(), is("two"));
+        assertThat(deserialized.getField3(), is("three"));
+    }
+
+    @Data
+    private static class MyClassWithSingleParamConstructorAnnotatedOk {
+        private final String field1;
+        private String field2;
+        private String field3;
+
+        @JsonCreator
+        public MyClassWithSingleParamConstructorAnnotatedOk(String field1) {
             this.field1 = field1;
         }
     }
